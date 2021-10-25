@@ -1,0 +1,128 @@
+@startuml FairyWorld
+interface PlayfulPet {
+    play(): string
+    playWithPerson(person: Person): string
+    playNoise(): string
+    getPetName(): string
+    getRentalCosts(): number
+    likesActivity(activity: string): boolean
+    dislikesActivity(activity: string): boolean
+    doActivity(activity: string): string
+}
+
+abstract class PlayfulPetAssistant {
+    # currentPerson: Person
+    # currentRentTime: double
+    + getActivities(): string[]
+    + setPerson(p: Person): void
+    + setHours(hours: number): void
+    + getHours(): number
+    + reset(): void
+    {abstract} createPlayfulPet(): PlayfulPet
+}
+
+class PlayfulCatAssistant extends PlayfulPetAssistant {
+    + createPlayfulPet(): PlayfulPet
+}
+
+class FairyWorld {
+    + rentPet(assistant: PlayfulPetAssistant, person: Person)
+}
+
+class PlayfulCatAssistant extends PlayfulPetAssistant {
+    + createPlayfulPet(): Cat
+}
+
+class RandomWrapper {
+    {static} + getRanDouble(min: number, max: number): number
+    {static} + ranBoolean()
+}
+
+class Name {
+    - firstName: string
+    - lastName: string
+    + constructor(firstName: string, lastName: string)
+    + toString(): string
+}
+
+class BMI {
+    - heightM: number
+    - weightKg: number
+    + constructor(heightM: number, weightKg: number)
+    + getHeightM(): number
+    + getWeightKg(): number
+    + getBmi(): number
+    + toString(): string
+}
+
+class Animal {
+    # species: string
+    # bmi: BMI
+    # lifeSpanDays: number
+    # biologicalSex: string
+    # spawnTime: Date
+    # deathTime: Date
+    # hungerPercent = 100
+    # sleepPercent = 100
+    + constructor(species: string, heightM: number, weightKg: number, lifeSpanDays: number, biologicalSex: string)
+    + eat(): void
+    + setAsHungry(): void
+    + isHungry(): boolean
+    + sleep(): void
+    + setAsSleepy(): void
+    + isSleepy(): boolean
+    + die(): void
+    + isAlive(): boolean
+    + status(): string
+    + dateCreated(): string
+}
+
+class Mammal extends Animal {
+    - bodyTemperatureC: number
+    - avgbodyTemperatureC: number
+    + constructor(species: string, heightM: number, weightKg: number, lifeSpanDays: number, biologicalSex: string, avgBodyTemperatureC: number)
+    + eat(): void
+    + toString()
+    + increaseBodyHeat(celcius: number): void
+    + decreaseBodyHeat(celcius: number): void
+    + adjustBodyHeat(): void
+    + mammalInformation(): string
+}
+
+class Person extends Mammal {
+    {static} + readonly SPECIES: string = "Human";
+    {static} + readonly LIFE_EXPECTANCY: number = 30000;
+    {static} + readonly BODY_TEMPERATURE: number = 36;
+    - name: Name;
+    - age: number;
+    + constructor(firstName: string, lastName: string, age: number, heightM: number, weightKg: number, biologicalSex: string)
+    + getName(): string
+    + toString(): string
+}
+
+class Cat extends Mammal implements PlayfulPet {
+    {static} + readonly SPECIES = "Cat";
+    {static} + readonly LIFE_EXPECTANCY: number = 5500;
+    {static} + readonly BODY_TEMPERATURE: number = 37;
+
+    {static} + readonly PLAYFUL_HOURLY_COSTS: number = 50;
+    {static} + readonly LIKED_ACTIVITIES: string[] = ["eat", "nap", "groom", "drink", "crawl", "explore", "pet"];
+    {static} + readonly DISLIKED_ACTIVITIES: string[] = ["bath"];
+    constructor(heightM: number, weightKg: number, biologicalSex: string)
+    + toString(): string
+    + meow(): void
+    + getPetName(): string
+    + play(): string
+    + playWithPerson(person: Person): string
+    + playNoise(): string
+    + getRentalCosts(): number
+    + likesActivity(activity: string): boolean
+    + dislikesActivity(activity: string): boolean
+    + doActivity(activity: string): string
+}
+FairyWorld o--> PlayfulPetAssistant
+PlayfulPetAssistant o-> PlayfulPet
+PlayfulCatAssistant o-> Cat
+Animal o--> BMI
+Animal o--> Name
+@enduml

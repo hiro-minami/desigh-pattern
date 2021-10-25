@@ -1,0 +1,16 @@
+@startuml Person
+class Person {
+    - firstName: string
+    - lastName: string
+    - age: number
+    - heightM: number
+    - weightKg: number
+    + constructor(firstName: string, lastName: string, age: number, heightM: number, weightKg: number)
+    + getWeightKg(): number
+    + getName(): string
+    + toString(): string
+}
+class Example {
+    {static} + calculateBMI(): number
+}
+@enduml
