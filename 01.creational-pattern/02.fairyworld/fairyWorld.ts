@@ -1,15 +1,15 @@
-class RandomWrapper {
-    public static getRanDouble(min: number, max: number): number {
-        return Math.floor(Math.random() * (max - min) + min);
+class RandomHelper{
+    public static setRanDouble(min: number, max: number): number {
+        return Math.random() * (max - min) + min;
     }
-    public static ranBoolean() {
-        return Math.random() * 10 > 5;
+    public static ranBoolean(): boolean {
+        return Math.floor(Math.random() * 10) % 2 === 0;
     }
 }
 
-class Name {
-    private firstName: string;
-    private lastName: string;
+class Name{
+    private firstName: string
+    private lastName: string
     constructor(firstName: string, lastName: string) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -20,35 +20,32 @@ class Name {
 }
 
 class BMI {
-    private heightM: number;
-    private weightKg: number;
+    private heightM: number
+    private weightKg: number
     constructor(heightM: number, weightKg: number) {
         this.heightM = heightM;
         this.weightKg = weightKg;
     }
-    public getHeightM(): number {
-        return this.heightM;
-    }
     public getWeightKg(): number {
         return this.weightKg;
     }
-    public getBmi(): number {
-        return this.weightKg / Math.pow(this.heightM, 2);
+    public getValue(): number {
+        return this.weightKg / (this.heightM * this.heightM);
     }
     public toString(): string {
-        return `${this.heightM} meters, ${this.weightKg}kg, BMI: ${this.getBmi()}`;
+        return `${this.heightM} meters, ${this.weightKg} kg, BMI: ${this.getValue()}`;
     }
 }
 
 class Animal {
-    protected species: string;
-    protected bmi: BMI;
-    protected lifeSpanDays: number;
-    protected biologicalSex: string;
-    protected spawnTime: Date;
-    protected deathTime: Date;
-    protected hungerPercent = 100;
-    protected sleepPercent = 100;
+    protected species: string
+    protected bmi: BMI
+    protected lifeSpanDays: number
+    protected biologicalSex: string
+    protected spawnTime: Date
+    protected deathTime: Date
+    protected hungerPercent: number = 100
+    protected sleepPercent: number = 100
     constructor(species: string, heightM: number, weightKg: number, lifeSpanDays: number, biologicalSex: string) {
         this.species = species;
         this.bmi = new BMI(heightM, weightKg);
@@ -57,22 +54,22 @@ class Animal {
         this.spawnTime = new Date();
     }
     public eat(): void {
-        if (!this.isAlive()) return;
+        if(!this.isAlive()) return;
         this.hungerPercent = 0;
     }
     public setAsHungry(): void {
-        if (!this.isAlive()) return;
+        if(!this.isAlive()) return;
         this.hungerPercent = 100;
     }
     public isHungry(): boolean {
         return this.hungerPercent >= 70;
     }
     public sleep(): void {
-        if (!this.isAlive()) return;
+        if(!this.isAlive()) return;
         this.sleepPercent = 0;
     }
-    public setAsSleepy(): void {
-        if (!this.isAlive()) return;
+    public setAsSleep(): void {
+        if(!this.isAlive()) return;
         this.sleepPercent = 100;
     }
     public isSleepy(): boolean {
@@ -86,29 +83,35 @@ class Animal {
     public isAlive(): boolean {
         return !this.deathTime;
     }
+    public toString(): string {
+        return `${this.species} ${this.bmi} lives ${this.lifeSpanDays} days/gender: ${this.biologicalSex}. ${this.status()}`;
+    }
     public status(): string {
-        return `${this.species} status: Hunger - ${this.hungerPercent}%, sleepness:${this.sleepPercent}%, Alive - ${this.isAlive()}. First created at ${this.dateCreated()}`;
+        return `${this.species} status: Hunger - ${this.hungerPercent}%, sleepiness: ${this.sleepPercent}%, Alive - ${this.isAlive()}. First created at ${this.dateCreated()}`;
     }
     public dateCreated(): string {
         const date = this.spawnTime;
-        return `${date.getFullYear()}/${date.getMonth()}/${date.getSeconds()}`;
+        return `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
     }
 }
 
 class Mammal extends Animal {
-    private bodyTemperatureC: number;
-    private avgbodyTemperatureC: number;
-    constructor(species: string, heightM: number, weightKg: number, lifeSpanDays: number, biologicalSex: string, avgBodyTemperatureC: number) {
+    private bodyTemperatureC: number
+    private avgBodyTemperature: number
+    constructor(species: string, heightM: number, weightKg: number, lifeSpanDays: number, biologicalSex: string, avgBodyTemperature: number) {
         super(species, heightM, weightKg, lifeSpanDays, biologicalSex);
-        this.bodyTemperatureC = avgBodyTemperatureC;
-        this.avgbodyTemperatureC = avgBodyTemperatureC;
+        this.avgBodyTemperature = avgBodyTemperature;
+        this.bodyTemperatureC = this.avgBodyTemperature;
     }
     public eat(): void {
         super.eat();
-        console.log(`This ${this.species} is eating with its single lower jaw`);
+        console.log(`this ${this.species} is eating with its single lower jaw`);
     }
-    public toString() {
+    public toString(): string {
         return `${super.toString()} ${this.mammalInformation()}`;
+    }
+    public mammalInformation(): string {
+        return `This is a mammal with a temperature of ${this.bodyTemperatureC}.`;
     }
     public increaseBodyHeat(celcius: number): void {
         this.bodyTemperatureC += celcius;
@@ -117,21 +120,19 @@ class Mammal extends Animal {
         this.bodyTemperatureC -= celcius;
     }
     public adjustBodyHeat(): void {
-        this.bodyTemperatureC = this.avgbodyTemperatureC;
-    }
-    public mammalInformation(): string {
-        return `This is a mammal with a temperature of: ${this.bodyTemperatureC}`;
+        this.bodyTemperatureC = this.avgBodyTemperature;
     }
 }
 
 class Person extends Mammal {
-    public static readonly SPECIES: string = "Human";
-    public static readonly LIFE_EXPECTANCY: number = 30000;
-    public static readonly BODY_TEMPERATURE: number = 36;
-    private name: Name;
-    private age: number;
+    private static readonly SPACIES = "Human"
+    private static readonly LIFE_EXPECTANCY = 30000
+    private static readonly BODY_TEMPERATURE = 36
+
+    private name: Name
+    private age: number
     constructor(firstName: string, lastName: string, age: number, heightM: number, weightKg: number, biologicalSex: string) {
-        super(Person.SPECIES, heightM, weightKg, Person.LIFE_EXPECTANCY, biologicalSex, Person.BODY_TEMPERATURE);
+        super(Person.SPACIES, heightM, weightKg, Person.LIFE_EXPECTANCY, biologicalSex, Person.BODY_TEMPERATURE);
         this.name = new Name(firstName, lastName);
         this.age = age;
     }
@@ -139,177 +140,195 @@ class Person extends Mammal {
         return this.name.toString();
     }
     public toString(): string {
-        return `${super.toString()}. The name of this person is ${this.getName()}`;
+        return `${super.toString()} The name of this person is ${this.getName()}.`;
     }
 }
 
 interface PlayfulPet {
-    play(): string;
-    playWithPerson(person: Person): string;
-    playNoise(): string;
-    getPetName(): string;
-    getRentalCosts(): number;
-    likesActivity(activity: string): boolean;
-    dislikesActivity(activity: string): boolean;
-    doActivity(activity: string): string;
+    play(): string
+    playWithPerson(person: Person): string
+    playNoise(): string
+    getPetname(): string
+    getRentalCost(): number
+    likesActivity(activity: string): boolean
+    dislikesActivity(activity: string): boolean
+    doActivity(activity: string): string
 }
 
 class Cat extends Mammal implements PlayfulPet {
-    public static readonly SPECIES = "Cat";
-    public static readonly LIFE_EXPECTANCY: number = 5500;
-    public static readonly BODY_TEMPERATURE: number = 37;
-
-    public static readonly PLAYFUL_HOURLY_COSTS: number = 50;
-    public static readonly LIKED_ACTIVITIES: string[] = ["eat", "nap", "groom", "drink", "crawl", "explore", "pet"];
-    public static readonly DISLIKED_ACTIVITIES: string[] = ["bath"];
-    constructor(heightM: number, weightKg: number, biologicalSex: string) {
-        super(Cat.SPECIES, heightM, weightKg, Cat.LIFE_EXPECTANCY, biologicalSex, Cat.BODY_TEMPERATURE);
+    private static readonly SPECIES = "Cat"
+    private static readonly LIFE_EXPECTANCY = 5500
+    private static readonly BODY_TEMPERATURE = 37
+    private static readonly PLAYFUL_HOURLY_COSTS: number = 50
+    private static readonly LIKED_ACTIVITIES = ["eat","nap","groom","drink","crawl","explore","pet"]
+    private static readonly DISLIKED_ACTIVITIES = ["bath"]
+    constructor(height: number, weight: number, biologicalSex: string) {
+        super(Cat.SPECIES, height, weight, Cat.LIFE_EXPECTANCY, biologicalSex, Cat.BODY_TEMPERATURE);
     }
     public toString(): string {
-        return `${super.toString()} this is a cat`;
+        return `${super.toString()} This is a cat.`;
     }
-    public meow(): void {
-        console.log("Meooow");
+    public meow(): string {
+        return "Meowww";
     }
-    public getPetName(): string {
+    public getPetname(): string {
         return this.species;
     }
     public play(): string {
-        return "This cat starts rolling on the floor, and pretends to play predator";
+        return "This cat is rolling ont the floor, and pretends to play predator.";
     }
     public playWithPerson(person: Person): string {
-        return `The cat stares at ${person.getName()}. After taking kin to ${person.getName()}, ${person.getName()} throws a mouse toy at this cat and the cat starts chasing the mouse toy.`;
+        return `The cat starts at ${person.getName()}. After taking kin to ${person.getName()}, ${person.getName()} throws a mouse toy at this and the cat starts chasing the mouse toy.`;
     }
     public playNoise(): string {
-        return "Meooow";
+        return this.meow();
     }
-    public getRentalCosts(): number {
+    public getRentalCost(): number {
         return Cat.PLAYFUL_HOURLY_COSTS;
     }
     public likesActivity(activity: string): boolean {
-        return Cat.LIKED_ACTIVITIES.findIndex((value) => value === activity) >= 0;
+        return Cat.LIKED_ACTIVITIES.some(act => act === activity);
     }
     public dislikesActivity(activity: string): boolean {
-        return Cat.DISLIKED_ACTIVITIES.findIndex((value) => value === activity) >= 0;
+        return Cat.DISLIKED_ACTIVITIES.some(act => act === activity);
     }
     public doActivity(activity: string): string {
-        // eatとnapは特別
-        if (activity === "eat") {
-            super.eat();
+        if(activity === "eat") {
+            this.eat();
             return "The cat enjoyed eating food.";
-        } else if (activity === "nap") {
-            super.sleep();
+        } else if(activity === "nap") {
+            this.sleep();
             return "The cat took a good nap.";
-        } else if (this.likesActivity(activity)) return `Meoow. The cat really enjoyed the ${activity}.`;
-        else return `The cat felt indiferent about the ${activity}`;
+        }
+        else if(this.likesActivity(activity)) return `Meow. The cat really enjoyed the ${activity} activity.`;
+        else if(this.dislikesActivity(activity)) return `The cat really hated at the ${activity} activity.`;
+        else return `The cat felt indeferent about the ${activity} activity.`;
     }
 }
 
-// このクラスにはPlayfulPetクラスを作成するための抽象クラスが存在する
-// factory methodはあるクラスのインスタンス作成を他のクラスに委ねるデザインパターン
 abstract class PlayfulPetAssistant {
-    protected static readonly DEFAULT_RENT_TIME: number = 1.0;
-    protected static readonly DEFAULT_TOUR: string = "all-rounder pack";
-
-    protected currentPerson: Person;
-    protected currentRentTime: number = PlayfulPetAssistant.DEFAULT_RENT_TIME;
-    protected static availableActivities: string[] = ["eat", "walk", "drink", "nap", "pet", "run", "explore"];
-    protected static availableTours: string[] = ["all-rounder pack", "deluxe rounder pack"];
+    protected static readonly DEFAULT_RENT_TIME: number = 1.0
+    protected static readonly DEFAULT_TOUR = "all-rounder pack"
+    protected currentPerson: Person
+    protected currentRentTime: number = PlayfulPetAssistant.DEFAULT_RENT_TIME
+    protected availableActivities: string[] = ["eat", "walk", "drink", "nap", "run", "explore"]
+    protected availableTour: string[] = ["all-rounder pack", "deluxe rounder pack"]
 
     public getActivities(): string[] {
-        return PlayfulPetAssistant.availableActivities;
+        return this.availableActivities;
     }
     public getAvailableTours(): string[] {
-        return PlayfulPetAssistant.availableTours;
+        return this.availableTour;
     }
     public isValidTour(tour: string): boolean {
-        return PlayfulPetAssistant.availableTours.findIndex((value) => value === tour) >= 0;
+        return this.availableTour.some(tourName => tourName === tour);
     }
     public getRandomActivity(): string {
-        const activities = PlayfulPetAssistant.availableActivities;
-        return activities[RandomWrapper.getRanDouble(0, activities.length - 1)];
+        const randomIndex = RandomHelper.setRanDouble(0, this.availableActivities.length);
+        return this.availableActivities[randomIndex];
     }
+    // 依存性注入
     public setPerson(person: Person): void {
         this.currentPerson = person;
     }
-    public setHours(hours: number): void {
+    public setHours(hours: number) {
         this.currentRentTime = hours;
     }
-    public getCurrentRentTime(): number {
+    public getCurrentTime(): number {
         return this.currentRentTime;
     }
     public reset(): void {
-        this.currentPerson = undefined;
+        this.currentPerson = null;
         this.currentRentTime = PlayfulPetAssistant.DEFAULT_RENT_TIME;
     }
-    // ここでfactoruy methodを呼んでいる
-    runAssistanceTour(person: Person);
-    runAssistanceTour(person: Person, tour: string);
-    public runAssistanceTour(person: Person, tour?: string) {
-        if (!tour) return this.runAssistanceTour(person, PlayfulPetAssistant.DEFAULT_TOUR);
+    public runAssistanceTour(person: Person, tour?: string): number {
+        // ツアーの情報を取得、引数にないならデフォルトのツアーがcurrentTourになる
+        const currentTour = !tour ? "all-rounder pack" : tour;
+        // ツアーが利用可能かどうか調べる
+        if(!this.isValidTour(currentTour)) console.log(`Sorry, the tour guide does not accept the ${currentTour} tour.`);
 
-        if (!this.isValidTour(tour)) {
-            console.log(`The tour guide does not accept the ${tour} tour.`);
-            return;
+        // Factory Methodを使ってPlayfulPetを生成
+        const pet = this.createPlayfulPet();
+
+        // 起動と遊び開始
+        console.log("");
+        console.log("Booting up... Playful Pet Assistance robot at your service");
+        // ユーザーの情報を表示する
+        console.log(`Printing information about the person to service... ${person}`);
+        console.log("");
+        // ペットの情報を表示する
+        console.log(`Printing information about the PlayfulPet... ${pet.getPetname()} to service... ${pet}`);
+
+        // tourの内容を確認してactivity開始
+        if(currentTour === "all-rounder pack" || currentTour === "deluxe rounder pack") {
+            const activityCount = currentTour === "all-rounder pack" ? 1 : 3;
+            this.genericRounderTour(activityCount, person, pet)
+        } 
+        // 今後ツアーを拡張するときはelse ifを増やせば良い
+        else {
+            console.log(`The tour assistant robot for ${person.getName()} and ${pet.getPetname()} did nothing.`);
         }
-        // factory methodを実行。サブクラスは、抽象メソッドであるcreatePlayfulPetを拡張することで特定のペットを作成することができる
-        const playfulPet: PlayfulPet = this.createPlayfulPet();
-
-        console.log("Booting up... Playful Pet Assistance robot at your service.");
-        console.log(`Printing information about the Person to service... ${person}`);
-        console.log(`Printing information about the Playful Pet - ${playfulPet.getPetName()} to service... ${playfulPet}`);
-
-        if (tour === "all-rounder pack" || tour === "deluxe rounder pack") {
-            let count = tour === "all-rounder pack" ? 1 : 3;
-            this.genericRounderTour(count, person, playfulPet);
-        } else {
-            // 該当しないツアーがあった場合
-            console.log(`The tour assistant robot for ${playfulPet.getPetName()} and ${person.getName()} did nothing.`);
-        }
-
-        // costを計算する
-        const rentalCosts = playfulPet.getRentalCosts() * this.getCurrentRentTime();
-
-        // アシスタントを終了する
+        // レンタル料を計算する
+        const rentalCosts = this.currentRentTime * pet.getRentalCost();
+        // リセット
         this.reset();
-
-        // costを返す
+        // レンタル料を返す
         return rentalCosts;
     }
-    public genericRounderTour(activityCount: number, person: Person, pet: PlayfulPet) {
+    public genericRounderTour(activityCount: number, person: Person, pet: PlayfulPet): void {
+        // ペットの名前とユーザーの名前
+        const petName = pet.getPetname();
+        const personName = person.getName();
+        // ゲーム回数を表示
         console.log(`Now starting the generic rounder tour with ${activityCount} activity(s)`);
-        console.log(`${person.getName()} greets ${pet.getPetName()}`);
+        // 挨拶
+        console.log(`${personName} greets ${petName}`);
+        // play(), playNoise(), playWithPerson(person)
         console.log(pet.play());
         console.log(pet.playNoise());
         console.log(pet.playWithPerson(person));
-        for (let i = 0; i < activityCount; i++) {
+        // ゲーム開始
+        for(let i=0; i<activityCount; i++) {
+            // アクティビティをランダムに取得
             const activity = this.getRandomActivity();
-            console.log(`${pet.getPetName()} will now ${activity}`);
-            console.log("--------");
+            // 取得したアクティビティを表示
+            console.log(`${petName} will now ${activity}`);
+            // アクティビティ開始
             console.log(pet.doActivity(activity));
-            console.log("--------");
+            console.log("----------");
         }
     }
-    public abstract createPlayfulPet(): PlayfulPet;
+    public abstract createPlayfulPet(): PlayfulPet
 }
 
-// PlayfulPetAssistantから具象クラスを作成する
-// factory methodは、オブジェクトの作成をサブクラスに委ねることを覚えておく
+// 抽象クラスを作成した。その結果、Factory MethodであるcreatePlayfulPet()は具象クラスにて生成される
+// これにより、オブジェクトの生成をサブクラスに権限を委ねている（抽象クラスはオブジェクトの生成ができない）
+// 具象クラスで定義することのメインは、抽象クラスより権限を委ねられた「オブジェクトの生成」
 class PlayfulCatAssistant extends PlayfulPetAssistant {
     public createPlayfulPet(): PlayfulPet {
-        return new Cat(RandomWrapper.getRanDouble(0.15, 0.3), RandomWrapper.getRanDouble(2.0, 4.9), RandomWrapper.ranBoolean() ? "male" : "female");
+        // Catの生成に必要な情報を生成する
+        // Factory Methodを利用することで、オブジェクトの生成に必要な処理を隠蔽できる。これにより、クライアントは何も知らなくてもよくなる
+        const heightM = RandomHelper.setRanDouble(0.15, 0.3);
+        const weightKg = RandomHelper.setRanDouble(2.0, 4.9);
+        const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
+        return new Cat(heightM, weightKg, biologicalSex);
     }
 }
 
 class FairyWorld {
-    public rentPet(assistant: PlayfulPetAssistant, person: Person) {
+    public rentPet(assistant: PlayfulPetAssistant, person: Person): void {
         console.log("Thank you for your pet rental!");
+        // assistanceTour開始
         const costs = assistant.runAssistanceTour(person);
-        console.log(`${costs} dollers were charged to ${person.getName()}'s credit card.`);
-        console.log("xxxxxxxxxxxxxxxxxxxxxxx");
+        // かかった費用を表示
+        console.log(`${costs} dollars were charged to ${person.getName()}'s credit card.`);
+        console.log("xxxxxxxxxx");
     }
 }
 
+// FairyWorld, Person, PlayfulPetAssistantの生成
 const fairyWorld = new FairyWorld();
-const jessica = new Person("Jessica", "Roller", 30, 1.65, 95, "female");
-fairyWorld.rentPet(new PlayfulCatAssistant(), jessica);
+const jessica = new Person("Jassica", "Roller", 30, 1.65, 55, "female");
+const catAssistant = new PlayfulCatAssistant();
+
+fairyWorld.rentPet(catAssistant, jessica);
