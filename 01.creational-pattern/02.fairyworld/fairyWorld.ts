@@ -43,7 +43,7 @@ class Animal {
     protected lifeSpanDays: number
     protected biologicalSex: string
     protected spawnTime: Date
-    protected deathTime: Date
+    protected deathTime: Date | undefined
     protected hungerPercent: number = 100
     protected sleepPercent: number = 100
     constructor(species: string, heightM: number, weightKg: number, lifeSpanDays: number, biologicalSex: string) {
@@ -187,10 +187,10 @@ class Cat extends Mammal implements PlayfulPet {
         return Cat.PLAYFUL_HOURLY_COSTS;
     }
     public likesActivity(activity: string): boolean {
-        return Cat.LIKED_ACTIVITIES.some(act => act === activity);
+        return Cat.LIKED_ACTIVITIES.some(likedActivity => likedActivity === activity);
     }
     public dislikesActivity(activity: string): boolean {
-        return Cat.DISLIKED_ACTIVITIES.some(act => act === activity);
+        return Cat.DISLIKED_ACTIVITIES.some(dislikedActivity => dislikedActivity === activity);
     }
     public doActivity(activity: string): string {
         if(activity === "eat") {
@@ -209,7 +209,7 @@ class Cat extends Mammal implements PlayfulPet {
 abstract class PlayfulPetAssistant {
     protected static readonly DEFAULT_RENT_TIME: number = 1.0
     protected static readonly DEFAULT_TOUR = "all-rounder pack"
-    protected currentPerson: Person
+    protected currentPerson: Person | undefined
     protected currentRentTime: number = PlayfulPetAssistant.DEFAULT_RENT_TIME
     protected availableActivities: string[] = ["eat", "walk", "drink", "nap", "run", "explore"]
     protected availableTour: string[] = ["all-rounder pack", "deluxe rounder pack"]
@@ -224,7 +224,7 @@ abstract class PlayfulPetAssistant {
         return this.availableTour.some(tourName => tourName === tour);
     }
     public getRandomActivity(): string {
-        const randomIndex = RandomHelper.setRanDouble(0, this.availableActivities.length);
+        const randomIndex = Math.floor(RandomHelper.setRanDouble(0, this.availableActivities.length));
         return this.availableActivities[randomIndex];
     }
     // 依存性注入
@@ -238,17 +238,18 @@ abstract class PlayfulPetAssistant {
         return this.currentRentTime;
     }
     public reset(): void {
-        this.currentPerson = null;
+        this.currentPerson = undefined;
         this.currentRentTime = PlayfulPetAssistant.DEFAULT_RENT_TIME;
     }
-    public runAssistanceTour(person: Person, tour?: string): number {
+    public runAssistanceTour(person: Person, amount: number, tour?: string): number {
         // ツアーの情報を取得、引数にないならデフォルトのツアーがcurrentTourになる
         const currentTour = !tour ? "all-rounder pack" : tour;
         // ツアーが利用可能かどうか調べる
         if(!this.isValidTour(currentTour)) console.log(`Sorry, the tour guide does not accept the ${currentTour} tour.`);
 
         // Factory Methodを使ってPlayfulPetを生成
-        const pet = this.createPlayfulPet();
+        const pets = this.createPlayfulPets(amount);
+        let totalCost: number = 0;
 
         // 起動と遊び開始
         console.log("");
@@ -256,24 +257,25 @@ abstract class PlayfulPetAssistant {
         // ユーザーの情報を表示する
         console.log(`Printing information about the person to service... ${person}`);
         console.log("");
-        // ペットの情報を表示する
-        console.log(`Printing information about the PlayfulPet... ${pet.getPetname()} to service... ${pet}`);
 
-        // tourの内容を確認してactivity開始
-        if(currentTour === "all-rounder pack" || currentTour === "deluxe rounder pack") {
-            const activityCount = currentTour === "all-rounder pack" ? 1 : 3;
-            this.genericRounderTour(activityCount, person, pet)
-        } 
-        // 今後ツアーを拡張するときはelse ifを増やせば良い
-        else {
-            console.log(`The tour assistant robot for ${person.getName()} and ${pet.getPetname()} did nothing.`);
-        }
-        // レンタル料を計算する
-        const rentalCosts = this.currentRentTime * pet.getRentalCost();
+        pets.forEach(pet => {
+            // ペットの情報を表示する
+            console.log(`Printing information about the PlayfulPet... ${pet.getPetname()} to service... ${pet}`);
+            // tourの内容を確認してactivity開始
+            if(currentTour === "all-rounder pack" || currentTour === "deluxe rounder pack") {
+                const activityCount = currentTour === "all-rounder pack" ? 1 : 3;
+                this.genericRounderTour(activityCount, person, pet)
+            } 
+            // 今後ツアーを拡張するときはelse ifを増やせば良い
+            else {
+                console.log(`The tour assistant robot for ${person.getName()} and ${pet.getPetname()} did nothing.`);
+            }
+            totalCost += this.currentRentTime * pets[0].getRentalCost();
+        });
         // リセット
         this.reset();
         // レンタル料を返す
-        return rentalCosts;
+        return totalCost;
     }
     public genericRounderTour(activityCount: number, person: Person, pet: PlayfulPet): void {
         // ペットの名前とユーザーの名前
@@ -298,31 +300,216 @@ abstract class PlayfulPetAssistant {
             console.log("----------");
         }
     }
-    public abstract createPlayfulPet(): PlayfulPet
+    public abstract createPlayfulPets(amount: number): PlayfulPet[]
 }
 
 // 抽象クラスを作成した。その結果、Factory MethodであるcreatePlayfulPet()は具象クラスにて生成される
 // これにより、オブジェクトの生成をサブクラスに権限を委ねている（抽象クラスはオブジェクトの生成ができない）
 // 具象クラスで定義することのメインは、抽象クラスより権限を委ねられた「オブジェクトの生成」
 class PlayfulCatAssistant extends PlayfulPetAssistant {
-    public createPlayfulPet(): PlayfulPet {
-        // Catの生成に必要な情報を生成する
-        // Factory Methodを利用することで、オブジェクトの生成に必要な処理を隠蔽できる。これにより、クライアントは何も知らなくてもよくなる
-        const heightM = RandomHelper.setRanDouble(0.15, 0.3);
-        const weightKg = RandomHelper.setRanDouble(2.0, 4.9);
-        const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
-        return new Cat(heightM, weightKg, biologicalSex);
+    public createPlayfulPets(amount: number): PlayfulPet[] {
+        let catList: Cat[] = [];
+        for(let i=0; i<amount; i++) {
+                const heightM = RandomHelper.setRanDouble(0.15, 0.3);
+                const weightKg = RandomHelper.setRanDouble(2.0, 4.9);
+                const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
+                catList.push(new Cat(heightM, weightKg, biologicalSex));
+        }
+        return catList;
+    }
+}
+
+class Invoice {
+    private title: string
+    private totalCost: number
+    private petName: string
+    private amount: number
+    constructor(title: string, totalCost: number, petName: string, amount: number) {
+        this.title = title;
+        this.totalCost = totalCost;
+        this.petName = petName;
+        this.amount = amount;
+    }
+    public getTitle(): string {
+        return this.title;
+    }
+    public getTotalCost(): number {
+        return this.totalCost;
+    }
+    public getPetName(): string {
+        return this.petName;
+    }
+    public getAmount(): number {
+        return this.amount;
+    }
+    public toString(): string {
+        return `Title: ${this.title}, Costs: ${this.totalCost}, Pet name: ${this.petName}, Amount: ${this.amount}`;
     }
 }
 
 class FairyWorld {
-    public rentPet(assistant: PlayfulPetAssistant, person: Person): void {
+    private assistantMap: Map<string, PlayfulPetAssistant>
+    private invoiceList: Invoice[]
+    constructor() {
+        this.assistantMap = new Map();
+        this.invoiceList = [];
+    }
+    public rentPet(petKey: string, person: Person, amount: number, tour: string): void {
         console.log("Thank you for your pet rental!");
-        // assistanceTour開始
-        const costs = assistant.runAssistanceTour(person);
+        // assistantの取得
+        const assistant = this.assistantMap.get(petKey);
+        if(!assistant) {
+            console.log("Sorry, The assistant you select is not here. Please choose another.");
+            return;
+        }
+        const cost = assistant.runAssistanceTour(person, amount, tour);
         // かかった費用を表示
-        console.log(`${costs} dollars were charged to ${person.getName()}'s credit card.`);
+        console.log(`${cost} dollars were charged to ${person.getName()}'s credit card.`);
+        this.makeInvoice(new Invoice(person.getName(), cost, petKey, amount));
         console.log("xxxxxxxxxx");
+    }
+    private makeInvoice(invoice: Invoice): void {
+        this.invoiceList.push(invoice);
+    }
+    // 請求書のリストを返す
+    public getRentedPetsInvoice(): string[] {
+        let list: string[] = [];
+        this.invoiceList.forEach(invoice => list.push(invoice.toString()));
+        return list;
+    }
+    // PlayfulPetAssistantを追加するメソッド
+    public addPlayfulPetAssistant(key: string, playfulPetAssistant: PlayfulPetAssistant): void {
+        if(!this.assistantMap.get(key)) this.assistantMap.set(key, playfulPetAssistant);
+    }
+}
+
+// 拡張
+// このシステムでは、ペットとペットのアシスタントを拡張できる
+class Dog extends Mammal implements PlayfulPet {
+    private static readonly SPACIES: string = "Dog"
+    private static readonly LIFE_EXPECTANCY: number = 7000
+    private static readonly BODY_TEMPERATURE: number = 37
+    private static readonly PLAYFUL_HOURLY_COSTS: number = 100
+    private static LIKED_ACTIVITIES: string[] = ["eat", "nap", "run", "stand"]
+    private static DISLIKED_ACTIVITIES: string[] = ["walk", "drink"]
+    constructor(heightM: number, weightKg: number, biologicalSex: string) {
+        super(Dog.SPACIES, heightM, weightKg, Dog.LIFE_EXPECTANCY, biologicalSex, Dog.BODY_TEMPERATURE);
+    }
+    public toString(): string {
+        return `${super.toString()} This is a dog.`
+    }
+    public bow(): string {
+        return "bow";
+    }
+    public getPetname(): string {
+        return this.species;
+    }
+    public play(): string {
+        return "The dog is running around the playground.";
+    }
+    public playWithPerson(person: Person): string {
+        return `The dog starts at ${person.getName()}. ${person.getName()} throws a dogfood and the dog runs to the dogfood.`
+    }
+    public playNoise(): string {
+        return this.bow();
+    }
+    public getRentalCost(): number {
+        return Dog.PLAYFUL_HOURLY_COSTS;
+    }
+    public likesActivity(activity: string): boolean {
+        return Dog.LIKED_ACTIVITIES.some(likedActivity => likedActivity === activity);
+    }
+    public dislikesActivity(activity: string): boolean {
+        return Dog.DISLIKED_ACTIVITIES.some(dislikedActivity => dislikedActivity === activity);
+    }
+    public doActivity(activity: string): string {
+        if(activity === "eat") {
+            super.eat();
+            return "The dog enjoyed eating."
+        } else if(activity === "nap") {
+            super.sleep();
+            return 'The dog took a good nap.'
+        } else if(this.likesActivity(activity)) return `woooowwwww! The dog really enjoyed ${activity} activity.`;
+        else if(this.dislikesActivity(activity)) return `The dog really hated at ${activity} activity.`
+        else return `The dog felt indeferent about the ${activity} activity.`
+    }
+}
+
+// Rabbit
+class Rabbit extends Mammal implements PlayfulPet {
+    private static readonly SPACIES = "Bunny";
+    private static readonly LIFE_EXPECTANCY = 5000
+    private static readonly BODY_TEMPERATURE = 37
+    private static readonly PLAYFUL_HOURLY_COSTS = 120
+    private static LIKED_ACTIVITIES = ["eat", "nap", "run", "jump"]
+    private static DISLIKED_ACTIVITIES = ["stand"]
+    constructor(heightM: number, weightKg: number, biologicalSex: string) {
+        super(Rabbit.SPACIES, heightM, weightKg, Rabbit.LIFE_EXPECTANCY, biologicalSex, Rabbit.BODY_TEMPERATURE);
+    }
+    public toString(): string {
+        return `${super.toString()} This is a rabbit.`
+    }
+    public boing(): string {
+        return "boing-boing";
+    }
+    public getPetname(): string {
+        return this.species;
+    }
+    public play(): string {
+        return "The rabbit is jumping.";
+    }
+    public playWithPerson(person: Person): string {
+        return `The rabbit starts at ${person.getName()}. ${person.getName()} throws a carrot over ther and the rabbit chasing it.`;
+    }
+    public playNoise(): string {
+        return this.boing();
+    }
+    public getRentalCost(): number {
+        return Rabbit.PLAYFUL_HOURLY_COSTS;
+    }
+    public likesActivity(activity: string): boolean {
+        return Rabbit.LIKED_ACTIVITIES.some(likedActivity => likedActivity === activity);
+    }
+    public dislikesActivity(activity: string): boolean {
+        return Rabbit.DISLIKED_ACTIVITIES.some(dislikedActivity => dislikedActivity === activity);
+    }
+    public doActivity(activity: string): string {
+        if(activity === "eat") {
+            super.eat();
+            return "The rabbit enjoyed eating.";
+        } else if(activity === "nap") {
+            super.sleep();
+            return "The rabbit took a good nap.";
+        }
+        else if(this.likesActivity(activity)) return `boing-boing!! The rabbit really likes the ${activity} activity.`;
+        else if(this.dislikesActivity(activity)) return `The rabbit really hate the ${activity} activity.`;
+        else return `The rabbit felt indeferent about the ${activity} activity.`;
+    }
+}
+
+class PlayfulDogAssistant extends PlayfulPetAssistant {
+    public createPlayfulPets(amount: number): PlayfulPet[] {
+        let dogList: Dog[] = [];
+        for(let i=0; i<amount; i++) {
+                const heightM = RandomHelper.setRanDouble(0.3, 1.0);
+                const weightKg = RandomHelper.setRanDouble(5, 10);
+                const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
+                dogList.push(new Dog(heightM, weightKg, biologicalSex));
+        }
+        return dogList;
+    }
+}
+
+class PlayfulBunnyAssistant extends PlayfulPetAssistant {
+    public createPlayfulPets(amount: number): PlayfulPet[] {
+        let bunnyList: Rabbit[] = [];
+        for(let i=0; i<amount; i++) {
+            const heightM = RandomHelper.setRanDouble(0.2, 0.8);
+            const weightKg = RandomHelper.setRanDouble(3, 7);
+            const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
+            bunnyList.push(new Rabbit(heightM, weightKg, biologicalSex));
+        }
+        return bunnyList;
     }
 }
 
@@ -330,5 +517,14 @@ class FairyWorld {
 const fairyWorld = new FairyWorld();
 const jessica = new Person("Jassica", "Roller", 30, 1.65, 55, "female");
 const catAssistant = new PlayfulCatAssistant();
+const dogAssistant = new PlayfulDogAssistant();
+const bunnyAssistant = new PlayfulBunnyAssistant();
+fairyWorld.addPlayfulPetAssistant("cat", catAssistant);
+fairyWorld.addPlayfulPetAssistant("dog", dogAssistant);
+fairyWorld.addPlayfulPetAssistant("bunny", bunnyAssistant);
 
-fairyWorld.rentPet(catAssistant, jessica);
+fairyWorld.rentPet("cat", jessica, 2, "deluxe rounder pack");
+console.log("##############");
+fairyWorld.rentPet("dog", jessica, 4, "all-rounder pack");
+console.log("##############");
+fairyWorld.rentPet("bunny", jessica, 5, "all-rounder pack");
