@@ -206,6 +206,110 @@ class Cat extends Mammal implements PlayfulPet {
     }
 }
 
+// 拡張
+// このシステムでは、ペットとペットのアシスタントを拡張できる
+class Dog extends Mammal implements PlayfulPet {
+    private static readonly SPACIES: string = "Dog"
+    private static readonly LIFE_EXPECTANCY: number = 7000
+    private static readonly BODY_TEMPERATURE: number = 37
+    private static readonly PLAYFUL_HOURLY_COSTS: number = 100
+    private static LIKED_ACTIVITIES: string[] = ["eat", "nap", "run", "stand"]
+    private static DISLIKED_ACTIVITIES: string[] = ["walk", "drink"]
+    constructor(heightM: number, weightKg: number, biologicalSex: string) {
+        super(Dog.SPACIES, heightM, weightKg, Dog.LIFE_EXPECTANCY, biologicalSex, Dog.BODY_TEMPERATURE);
+    }
+    public toString(): string {
+        return `${super.toString()} This is a dog.`
+    }
+    public bow(): string {
+        return "bow";
+    }
+    public getPetname(): string {
+        return this.species;
+    }
+    public play(): string {
+        return "The dog is running around the playground.";
+    }
+    public playWithPerson(person: Person): string {
+        return `The dog starts at ${person.getName()}. ${person.getName()} throws a dogfood and the dog runs to the dogfood.`
+    }
+    public playNoise(): string {
+        return this.bow();
+    }
+    public getRentalCost(): number {
+        return Dog.PLAYFUL_HOURLY_COSTS;
+    }
+    public likesActivity(activity: string): boolean {
+        return Dog.LIKED_ACTIVITIES.some(likedActivity => likedActivity === activity);
+    }
+    public dislikesActivity(activity: string): boolean {
+        return Dog.DISLIKED_ACTIVITIES.some(dislikedActivity => dislikedActivity === activity);
+    }
+    public doActivity(activity: string): string {
+        if(activity === "eat") {
+            super.eat();
+            return "The dog enjoyed eating."
+        } else if(activity === "nap") {
+            super.sleep();
+            return 'The dog took a good nap.'
+        } else if(this.likesActivity(activity)) return `woooowwwww! The dog really enjoyed ${activity} activity.`;
+        else if(this.dislikesActivity(activity)) return `The dog really hated at ${activity} activity.`
+        else return `The dog felt indeferent about the ${activity} activity.`
+    }
+}
+
+// Rabbit
+class Rabbit extends Mammal implements PlayfulPet {
+    private static readonly SPACIES = "Bunny";
+    private static readonly LIFE_EXPECTANCY = 5000
+    private static readonly BODY_TEMPERATURE = 37
+    private static readonly PLAYFUL_HOURLY_COSTS = 120
+    private static LIKED_ACTIVITIES = ["eat", "nap", "run", "jump"]
+    private static DISLIKED_ACTIVITIES = ["stand"]
+    constructor(heightM: number, weightKg: number, biologicalSex: string) {
+        super(Rabbit.SPACIES, heightM, weightKg, Rabbit.LIFE_EXPECTANCY, biologicalSex, Rabbit.BODY_TEMPERATURE);
+    }
+    public toString(): string {
+        return `${super.toString()} This is a rabbit.`
+    }
+    public boing(): string {
+        return "boing-boing";
+    }
+    public getPetname(): string {
+        return this.species;
+    }
+    public play(): string {
+        return "The rabbit is jumping.";
+    }
+    public playWithPerson(person: Person): string {
+        return `The rabbit starts at ${person.getName()}. ${person.getName()} throws a carrot over ther and the rabbit chasing it.`;
+    }
+    public playNoise(): string {
+        return this.boing();
+    }
+    public getRentalCost(): number {
+        return Rabbit.PLAYFUL_HOURLY_COSTS;
+    }
+    public likesActivity(activity: string): boolean {
+        return Rabbit.LIKED_ACTIVITIES.some(likedActivity => likedActivity === activity);
+    }
+    public dislikesActivity(activity: string): boolean {
+        return Rabbit.DISLIKED_ACTIVITIES.some(dislikedActivity => dislikedActivity === activity);
+    }
+    public doActivity(activity: string): string {
+        if(activity === "eat") {
+            super.eat();
+            return "The rabbit enjoyed eating.";
+        } else if(activity === "nap") {
+            super.sleep();
+            return "The rabbit took a good nap.";
+        }
+        else if(this.likesActivity(activity)) return `boing-boing!! The rabbit really likes the ${activity} activity.`;
+        else if(this.dislikesActivity(activity)) return `The rabbit really hate the ${activity} activity.`;
+        else return `The rabbit felt indeferent about the ${activity} activity.`;
+    }
+}
+
 abstract class PlayfulPetAssistant {
     protected static readonly DEFAULT_RENT_TIME: number = 1.0
     protected static readonly DEFAULT_TOUR = "all-rounder pack"
@@ -319,6 +423,32 @@ class PlayfulCatAssistant extends PlayfulPetAssistant {
     }
 }
 
+class PlayfulDogAssistant extends PlayfulPetAssistant {
+    public createPlayfulPets(amount: number): PlayfulPet[] {
+        let dogList: Dog[] = [];
+        for(let i=0; i<amount; i++) {
+                const heightM = RandomHelper.setRanDouble(0.3, 1.0);
+                const weightKg = RandomHelper.setRanDouble(5, 10);
+                const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
+                dogList.push(new Dog(heightM, weightKg, biologicalSex));
+        }
+        return dogList;
+    }
+}
+
+class PlayfulBunnyAssistant extends PlayfulPetAssistant {
+    public createPlayfulPets(amount: number): PlayfulPet[] {
+        let bunnyList: Rabbit[] = [];
+        for(let i=0; i<amount; i++) {
+            const heightM = RandomHelper.setRanDouble(0.2, 0.8);
+            const weightKg = RandomHelper.setRanDouble(3, 7);
+            const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
+            bunnyList.push(new Rabbit(heightM, weightKg, biologicalSex));
+        }
+        return bunnyList;
+    }
+}
+
 class Invoice {
     private title: string
     private totalCost: number
@@ -380,136 +510,6 @@ class FairyWorld {
     // PlayfulPetAssistantを追加するメソッド
     public addPlayfulPetAssistant(key: string, playfulPetAssistant: PlayfulPetAssistant): void {
         if(!this.assistantMap.get(key)) this.assistantMap.set(key, playfulPetAssistant);
-    }
-}
-
-// 拡張
-// このシステムでは、ペットとペットのアシスタントを拡張できる
-class Dog extends Mammal implements PlayfulPet {
-    private static readonly SPACIES: string = "Dog"
-    private static readonly LIFE_EXPECTANCY: number = 7000
-    private static readonly BODY_TEMPERATURE: number = 37
-    private static readonly PLAYFUL_HOURLY_COSTS: number = 100
-    private static LIKED_ACTIVITIES: string[] = ["eat", "nap", "run", "stand"]
-    private static DISLIKED_ACTIVITIES: string[] = ["walk", "drink"]
-    constructor(heightM: number, weightKg: number, biologicalSex: string) {
-        super(Dog.SPACIES, heightM, weightKg, Dog.LIFE_EXPECTANCY, biologicalSex, Dog.BODY_TEMPERATURE);
-    }
-    public toString(): string {
-        return `${super.toString()} This is a dog.`
-    }
-    public bow(): string {
-        return "bow";
-    }
-    public getPetname(): string {
-        return this.species;
-    }
-    public play(): string {
-        return "The dog is running around the playground.";
-    }
-    public playWithPerson(person: Person): string {
-        return `The dog starts at ${person.getName()}. ${person.getName()} throws a dogfood and the dog runs to the dogfood.`
-    }
-    public playNoise(): string {
-        return this.bow();
-    }
-    public getRentalCost(): number {
-        return Dog.PLAYFUL_HOURLY_COSTS;
-    }
-    public likesActivity(activity: string): boolean {
-        return Dog.LIKED_ACTIVITIES.some(likedActivity => likedActivity === activity);
-    }
-    public dislikesActivity(activity: string): boolean {
-        return Dog.DISLIKED_ACTIVITIES.some(dislikedActivity => dislikedActivity === activity);
-    }
-    public doActivity(activity: string): string {
-        if(activity === "eat") {
-            super.eat();
-            return "The dog enjoyed eating."
-        } else if(activity === "nap") {
-            super.sleep();
-            return 'The dog took a good nap.'
-        } else if(this.likesActivity(activity)) return `woooowwwww! The dog really enjoyed ${activity} activity.`;
-        else if(this.dislikesActivity(activity)) return `The dog really hated at ${activity} activity.`
-        else return `The dog felt indeferent about the ${activity} activity.`
-    }
-}
-
-// Rabbit
-class Rabbit extends Mammal implements PlayfulPet {
-    private static readonly SPACIES = "Bunny";
-    private static readonly LIFE_EXPECTANCY = 5000
-    private static readonly BODY_TEMPERATURE = 37
-    private static readonly PLAYFUL_HOURLY_COSTS = 120
-    private static LIKED_ACTIVITIES = ["eat", "nap", "run", "jump"]
-    private static DISLIKED_ACTIVITIES = ["stand"]
-    constructor(heightM: number, weightKg: number, biologicalSex: string) {
-        super(Rabbit.SPACIES, heightM, weightKg, Rabbit.LIFE_EXPECTANCY, biologicalSex, Rabbit.BODY_TEMPERATURE);
-    }
-    public toString(): string {
-        return `${super.toString()} This is a rabbit.`
-    }
-    public boing(): string {
-        return "boing-boing";
-    }
-    public getPetname(): string {
-        return this.species;
-    }
-    public play(): string {
-        return "The rabbit is jumping.";
-    }
-    public playWithPerson(person: Person): string {
-        return `The rabbit starts at ${person.getName()}. ${person.getName()} throws a carrot over ther and the rabbit chasing it.`;
-    }
-    public playNoise(): string {
-        return this.boing();
-    }
-    public getRentalCost(): number {
-        return Rabbit.PLAYFUL_HOURLY_COSTS;
-    }
-    public likesActivity(activity: string): boolean {
-        return Rabbit.LIKED_ACTIVITIES.some(likedActivity => likedActivity === activity);
-    }
-    public dislikesActivity(activity: string): boolean {
-        return Rabbit.DISLIKED_ACTIVITIES.some(dislikedActivity => dislikedActivity === activity);
-    }
-    public doActivity(activity: string): string {
-        if(activity === "eat") {
-            super.eat();
-            return "The rabbit enjoyed eating.";
-        } else if(activity === "nap") {
-            super.sleep();
-            return "The rabbit took a good nap.";
-        }
-        else if(this.likesActivity(activity)) return `boing-boing!! The rabbit really likes the ${activity} activity.`;
-        else if(this.dislikesActivity(activity)) return `The rabbit really hate the ${activity} activity.`;
-        else return `The rabbit felt indeferent about the ${activity} activity.`;
-    }
-}
-
-class PlayfulDogAssistant extends PlayfulPetAssistant {
-    public createPlayfulPets(amount: number): PlayfulPet[] {
-        let dogList: Dog[] = [];
-        for(let i=0; i<amount; i++) {
-                const heightM = RandomHelper.setRanDouble(0.3, 1.0);
-                const weightKg = RandomHelper.setRanDouble(5, 10);
-                const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
-                dogList.push(new Dog(heightM, weightKg, biologicalSex));
-        }
-        return dogList;
-    }
-}
-
-class PlayfulBunnyAssistant extends PlayfulPetAssistant {
-    public createPlayfulPets(amount: number): PlayfulPet[] {
-        let bunnyList: Rabbit[] = [];
-        for(let i=0; i<amount; i++) {
-            const heightM = RandomHelper.setRanDouble(0.2, 0.8);
-            const weightKg = RandomHelper.setRanDouble(3, 7);
-            const biologicalSex = RandomHelper.ranBoolean() ? "male" : "female";
-            bunnyList.push(new Rabbit(heightM, weightKg, biologicalSex));
-        }
-        return bunnyList;
     }
 }
 
